@@ -1,12 +1,13 @@
-# game.py - самая простая графическая версия
-
 import pygame
 from gameparts.parts import Board
 
-# Настройки
-WIDTH = 600
-HEIGHT = 600
-CELL_SIZE = 200
+# Инициализировать библиотеку Pygame.
+pygame.init()
+
+# Создать окно размером 600x600.
+screen = pygame.display.set_mode((600, 600))
+# Задать окну заголовок.
+pygame.display.set_caption('Крестики-нолики')
 
 # Цвета
 WHITE = (255, 255, 255)
@@ -14,17 +15,16 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 
-# Запуск pygame
-pygame.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption('Крестики-нолики')
+# Заливаем фон белым
 screen.fill(WHITE)
 
-# Рисуем сетку
-for i in range(1, 3):
-    pygame.draw.line(screen, BLACK, (CELL_SIZE * i, 0), (CELL_SIZE * i, HEIGHT), 5)
-    pygame.draw.line(screen, BLACK, (0, CELL_SIZE * i), (WIDTH, CELL_SIZE * i), 5)
+# Рисуем линии сетки
+pygame.draw.line(screen, BLACK, (200, 0), (200, 600), 5)
+pygame.draw.line(screen, BLACK, (400, 0), (400, 600), 5)
+pygame.draw.line(screen, BLACK, (0, 200), (600, 200), 5)
+pygame.draw.line(screen, BLACK, (0, 400), (600, 400), 5)
 
+# Отобразить сетку
 pygame.display.update()
 
 # Игровые переменные
@@ -33,50 +33,66 @@ current_player = 'X'
 running = True
 game_over = False
 
+# Функция для рисования крестика
+def draw_x(row, col):
+    x = col * 200
+    y = row * 200
+    pygame.draw.line(screen, RED, (x + 30, y + 30), (x + 170, y + 170), 8)
+    pygame.draw.line(screen, RED, (x + 170, y + 30), (x + 30, y + 170), 8)
+
+# Функция для рисования нолика
+def draw_o(row, col):
+    x = col * 200 + 100
+    y = row * 200 + 100
+    pygame.draw.circle(screen, BLUE, (x, y), 70, 8)
+
 # Главный цикл
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         
+        # Клик мыши
         if event.type == pygame.MOUSEBUTTONDOWN and not game_over:
-            # Получаем координаты клика
-            x, y = pygame.mouse.get_pos()
-            row = y // CELL_SIZE
-            col = x // CELL_SIZE
+            # Получаем координаты
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            row = mouse_y // 200
+            col = mouse_x // 200
             
-            # Проверяем, можно ли сходить
+            # Проверяем пустая ли клетка
             if game.board[row][col] == ' ':
                 # Делаем ход
                 game.make_move(row, col, current_player)
                 
-                # Рисуем X или O
+                # Рисуем символ
                 if current_player == 'X':
-                    # Рисуем крестик
-                    x1 = col * CELL_SIZE + 30
-                    y1 = row * CELL_SIZE + 30
-                    x2 = (col + 1) * CELL_SIZE - 30
-                    y2 = (row + 1) * CELL_SIZE - 30
-                    pygame.draw.line(screen, RED, (x1, y1), (x2, y2), 8)
-                    pygame.draw.line(screen, RED, (x2, y1), (x1, y2), 8)
+                    draw_x(row, col)
                 else:
-                    # Рисуем нолик
-                    center = (col * CELL_SIZE + 100, row * CELL_SIZE + 100)
-                    pygame.draw.circle(screen, BLUE, center, 70, 8)
+                    draw_o(row, col)
                 
                 pygame.display.update()
                 
-                # Проверка победы
+                # Проверяем победу
                 if game.check_win(current_player):
-                    print(f'Победил {current_player}!')
+                    # Рисуем сообщение о победе
+                    font = pygame.font.Font(None, 74)
+                    text = font.render(f'{current_player} WIN!', True, BLACK)
+                    text_rect = text.get_rect(center=(300, 300))
+                    screen.blit(text, text_rect)
+                    pygame.display.update()
                     game_over = True
                 
-                # Проверка ничьи
+                # Проверяем ничью
                 elif game.is_board_full():
-                    print('Ничья!')
+                    font = pygame.font.Font(None, 74)
+                    text = font.render('DRAW!', True, BLACK)
+                    text_rect = text.get_rect(center=(300, 300))
+                    screen.blit(text, text_rect)
+                    pygame.display.update()
                     game_over = True
                 
                 # Меняем игрока
                 current_player = 'O' if current_player == 'X' else 'X'
 
+# Деинициализирует все модули pygame
 pygame.quit()
